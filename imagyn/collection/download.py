@@ -123,6 +123,38 @@ class Downloader:
 
         return downloaded_files
 
+    def download_synset_by_id(self, max_images, synset_ids, destination, sequential=False):
+        """
+        Download images from a synset.
+        :param max_images: Max number of images to attempt to download from a synset (0 for all)
+        :param synset_ids: List of synset_ids to request images from
+        :param destination: Location to store the downloaded files
+        :param sequential: Use sequential (single threaded) download method
+        :return: Dict of lists of images downloaded from each synset
+        """
+
+        downloaded_files = dict()
+        downloader = self.download_sequential if sequential else self.multidownload
+
+        for synset_id in synset_ids:
+
+            if len(self.lexicon.API.words_for(synset_id)) > 0:
+                prefix = self.lexicon.API.words_for(synset_id)[0].replace(" ", "_")
+            else:
+                prefix = ""
+
+            urls=self.lexicon.API.urls_for(synset_id)
+            if max_images and (len(urls)>max_images):
+                urls = urls[:max_images]
+            
+            downloaded_files[synset_id] = downloader(
+                urls=urls,
+                destination=destination,
+                prefix=prefix
+            )
+
+        return downloaded_files
+
     def multidownload(self, urls: list, destination: str, prefix: str):
         """
         Use several processes to speed up image acquisition.

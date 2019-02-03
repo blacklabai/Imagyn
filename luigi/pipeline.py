@@ -60,9 +60,9 @@ class RunAll(luigi.WrapperTask):
 class DownloadImagesTask(luigi.Task):
     download_type = luigi.Parameter()
     keyword = luigi.Parameter()
-    imgCount = luigi.IntParameter()
+    imgCount = luigi.IntParameter(default=0)  # not sure what this was for
     num_images = luigi.IntParameter()
-    time = luigi.Parameter()
+    time = luigi.Parameter(default=datetime.datetime.now().strftime("%Y%m%dT%H%M%S"))
 
     def requires(self):
         return []
@@ -77,7 +77,7 @@ class DownloadImagesTask(luigi.Task):
         synsets = []
         synset = synset_helper.get_synset(self.keyword)
         downloaded_result = None
-        self.num_images = (self.imgCount * self.num_images) // 100
+#        self.num_images = (self.imgCount * self.num_images) // 100
 
         if self.download_type == "Exact":
             # Get exact images
@@ -93,6 +93,31 @@ class DownloadImagesTask(luigi.Task):
             # Get unrelated images
             synsets.extend(synset_helper.get_unrelated_synsets(synset))
             downloaded_result = downloader.download_multiple_synsets(self.num_images, synsets, path)
+
+        with self.output().open('w') as fout:
+            for key in downloaded_result:
+                for f in downloaded_result[key]:
+                    fout.write(f + "\n")
+
+
+class DownloadSynsetTask(luigi.Task):
+    synset_id = luigi.Parameter()
+    num_images = luigi.IntParameter(default=0)  # default all images
+    time = luigi.Parameter(default=datetime.datetime.now().strftime("%Y%m%dT%H%M%S"))
+
+    def requires(self):
+        return []
+
+    def output(self):
+        return luigi.LocalTarget("{}{}.txt".format("DownloadSynset_", self.time))
+
+    def run(self):
+        downloader = download. Downloader()
+        path = os.path.join(os.getcwd(), 'DownloadedImages', self.time)
+        downloaded_result = None
+
+        # Get exact images
+        downloaded_result = downloader.download_synset_by_id(self.num_images, [self.synset_id], path)
 
         with self.output().open('w') as fout:
             for key in downloaded_result:
