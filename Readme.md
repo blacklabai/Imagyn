@@ -9,3 +9,36 @@ Licensed for usage under the MIT Software Licensing agreement, and is free for u
 
 ### Learn
 See [http://www.engr.uvic.ca/~zevisert/imagyn/](http://www.engr.uvic.ca/~zevisert/imagyn/)
+
+## Install
+
+    git clone https://github.com/blacklabai/Imagyn.git
+    cd Imagyn
+    python setup.py install
+    
+## Usage
+
+Find synsets and associated meta
+
+    from imagyn.collection.lexicon import SynsetLexicon
+    lexicon = SynsetLexicon()
+
+    # Get a WordNet synset from keyword
+    synset = lexicon.get_synset("car_battery")
+
+    lexicon.get_parent(synset)
+    lexicon.get_siblings(synset)
+    lexicon.get_grandparents(synset)
+
+    # Get the WordNet ID - for downloading images from ImageNet
+    synset_id = lexicon.get_synset_id(synset)
+
+    # Query ImageNet for the URLs of associated images
+    urls = lexicon.API.urls_for(synset_id)
+    
+Download images
+
+    from imagyn.collection.download import Downloader
+
+    num_images_per_synset = 10
+    Downloader().download_multiple_synsets(count=num_images_per_synset, synsets=[synset], destination='temp', sequential=False)
