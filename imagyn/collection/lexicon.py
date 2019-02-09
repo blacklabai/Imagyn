@@ -168,9 +168,9 @@ class SynsetLexicon:
         sid = self.get_synset_id(synset)
         return sid in self.API.all_synsets
 
-    def get_siblings(self, synset: Synset):
+    def get_siblings(self, synset: Synset, limit=None):
         """
-        Returns up to five siblings of the synset.
+        Returns siblings of the synset (hyponyms of the hypernym of this synset).
         :param synset: The synset to obtain the siblings from
         :return: The siblings obtained from the synset
         """
@@ -180,7 +180,7 @@ class SynsetLexicon:
         parent = self.get_parent(synset)
 
         for sibling in parent.hyponyms():
-            if sibling_count == 5:
+            if sibling_count == limit:
                 break
             if sibling != synset and self.valid_synset(sibling):
                 siblings.insert(sibling_count, sibling)
@@ -191,7 +191,7 @@ class SynsetLexicon:
     @staticmethod
     def get_parent(synset: Synset):
         """
-        Returns one of the parents of the synset.
+        Returns one random parent of the synset (hypernym).
         :param synset: The synset to obtain the parent from
         :return: One of the parents of the synset
         """
@@ -199,9 +199,19 @@ class SynsetLexicon:
         return random.choice(synset.hypernyms())
 
     @staticmethod
+    def get_parents(synset: Synset):
+        """
+        Returns all parents of the synset (hypernyms).
+        :param synset: The synset to obtain the parent from
+        :return: List of the parents of the synset
+        """
+
+        return synset.hypernyms()
+
+    @staticmethod
     def get_grandparents(synset: Synset):
         """
-        Returns all grandparents of the synset.
+        Returns all grandparents of the synset (hypernyms of hypernyms).
         :param synset: The synset to obtain the grandparents from
         :return: The grandparents of the synset
         """
@@ -213,9 +223,9 @@ class SynsetLexicon:
         
         return grandparents
 
-    def get_unrelated_synsets(self, synset: Synset):
+    def get_unrelated_synsets(self, synset: Synset, limit=5):
         """
-        Gets five unrelated synsets.
+        Gets unrelated synsets.
         :param synset: The synset to compare with
         :return: Five synsets that are unrelated to the synset passed
         """
@@ -225,7 +235,7 @@ class SynsetLexicon:
 
         unrelated_synsets = []
         unrelated_count = 0
-        while unrelated_count < 5:
+        while unrelated_count < limit:
             # Obtain an unrelated synset
             unrelated_synset_id = random.choice(self.API.all_synsets)
             unrelated_synset_name = random.choice(self.API.words_for(unrelated_synset_id))
